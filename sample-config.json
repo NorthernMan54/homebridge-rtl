@@ -1,0 +1,29 @@
+{
+  "bridge": {
+    "name": "Maggie",
+    "username": "CC:22:3D:F3:CE:35",
+    "port": 51826,
+    "pin": "031-45-154"
+  },
+
+  "description": "HomeBridge HTTP Status Control",
+
+  "platforms": [{
+    "platform": "rtl_433",
+    "devices": [{
+      "id": "3929",
+      "name": "Freezer",
+      "type": "temperature"
+    }, {
+      "id": "1e3e8",
+      "name": "Front Porch",
+      "type": "motion"
+    }, {
+      "id": "3930",
+      "name": "Fridge",
+      "type": "temperature"
+    }]
+  }],
+
+  "accessories": []
+}

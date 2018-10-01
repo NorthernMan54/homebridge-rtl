@@ -1,0 +1,41 @@
+{
+  "name": "homebridge-rtl_433",
+  "version": "0.0.6",
+  "description": "RTL_433 based sensor for Homebridge",
+  "main": "sensor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/northernman54/homebridge-rtl_433.git"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "rtl_433",
+    "temperature",
+    "humidity",
+    "pressure",
+    "sensor",
+    "motion"
+  ],
+  "author": "northernman54",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/northernman54/homebridge-rtl_433/issues"
+  },
+  "engines": {
+    "node": ">=8.0.0",
+    "homebridge": ">=0.2.0"
+  },
+  "homepage": "https://github.com/northernman54/homebridge-rtl_433#readme",
+  "dependencies": {
+    "debug": "^2.2.0",
+    "mcuiot-logger": "^0.0.7",
+    "moment": "^2.18.1",
+    "fakegato-history": "^0.4.0"
+  },
+  "directories": {
+    "lib": "lib"
+  }
+}
