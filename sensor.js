@@ -33,8 +33,6 @@ function rtl_433Plugin(log, config, api) {
     this.log_event_counter = 59;
     this.logger = new logger(this.spreadsheetId);
   }
-  this.lastUpdated = Date.now();
-
 }
 
 rtl_433Plugin.prototype = {
@@ -44,29 +42,48 @@ rtl_433Plugin.prototype = {
       myAccessories.push(new rtl_433Accessory(this.devices[i], this.log, i));
     }
     callback(myAccessories);
-
-    var child_process = require('child_process');
-    var readline = require('readline');
-    var proc = child_process.spawn('/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si']);
-    readline.createInterface({
-      input: proc.stdout,
-      terminal: false
-    }).on('line', function(message) {
-      debug("Message", message.toString());
-      if (message.toString().startsWith('{')) {
-        try {
-          var data = JSON.parse(message.toString());
-          var device = getDevice(data.id);
-
-          if (device != undefined)
-            device.updateStatus(data);
-          // {"time" : "2018-06-02 08:27:20", "model" : "Acurite 986 Sensor", "id" : 3929, "channel" : "2F", "temperature_F" : -11, "temperature_C" : -23.889, "battery" : "OK", "status" : 0}
-        } catch (err) {
-          this.log.error("JSON Parse Error", message.toString(), err);
-        }
-      }
-    }.bind(this));
+    //console.log("Pre-This", this);
+    rtl_433Server.call(this);
   }
+}
+
+function rtl_433Server() {
+  //console.log("This", this);
+  var child_process = require('child_process');
+  var readline = require('readline');
+  this.log("Spawning rtl_433");
+  var proc = child_process.spawn('/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si']);
+  readline.createInterface({
+    input: proc.stdout,
+    terminal: false
+  }).on('line', function(message) {
+    debug("Message", message.toString());
+    if (message.toString().startsWith('{')) {
+      try {
+        var data = JSON.parse(message.toString());
+        var device = getDevice(data.id);
+
+        if (device != undefined)
+          device.updateStatus(data);
+        // {"time" : "2018-06-02 08:27:20", "model" : "Acurite 986 Sensor", "id" : 3929, "channel" : "2F", "temperature_F" : -11, "temperature_C" : -23.889, "battery" : "OK", "status" : 0}
+      } catch (err) {
+        this.log.error("JSON Parse Error", message.toString(), err);
+      }
+    }
+  }.bind(this));
+  proc.on('close', function(code) {
+    this.log.error('child close code (spawn)', code);
+    setTimeout(rtl_433Server.bind(this), 10 * 1000);
+  }.bind(this));
+  proc.on('disconnect', function(code) {
+    this.log.error('child disconnect code (spawn)', code);
+  }.bind(this));
+  proc.on('error', function(code) {
+    this.log.error('child error code (spawn)', code);
+  }.bind(this));
+  proc.on('exit', function(code) {
+    this.log.error('child exit code (spawn)', code);
+  }.bind(this));
 }
 
 function rtl_433Accessory(device, log, unit) {
@@ -198,6 +215,6 @@ function getDevice(unit) {
     if (myAccessories[i].unit == unit)
       return myAccessories[i];
   }
-  console.log("ERROR: unknown unit -", unit);
+  this.log.error("ERROR: unknown unit -", unit);
   return (undefined);
 }
