@@ -1,6 +1,6 @@
 {
-  "name": "homebridge-rtl_433",
-  "version": "0.0.7",
+  "name": "homebridge-rtl-433",
+  "version": "0.0.8",
   "description": "RTL_433 based sensor for Homebridge",
   "main": "sensor.js",
   "scripts": {
