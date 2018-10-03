@@ -4,6 +4,7 @@ var debug = require('debug')('homebridge-rtl_433');
 var logger = require("mcuiot-logger").logger;
 const moment = require('moment');
 var os = require("os");
+var _ = require('lodash');
 var hostname = os.hostname();
 
 let Service, Characteristic;
@@ -51,6 +52,7 @@ function rtl_433Server() {
   //console.log("This", this);
   var child_process = require('child_process');
   var readline = require('readline');
+  var previousMessage;
   this.log("Spawning rtl_433");
   var proc = child_process.spawn('/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si']);
   readline.createInterface({
@@ -58,18 +60,23 @@ function rtl_433Server() {
     terminal: false
   }).on('line', function(message) {
     debug("Message", message.toString());
+
     if (message.toString().startsWith('{')) {
       try {
         var data = JSON.parse(message.toString());
-        var device = getDevice(data.id);
+        var device = getDevice.call(this, data.id);
 
-        if (device != undefined)
-          device.updateStatus(data);
+        if (!duplicateMessage(previousMessage, data))
+          if (device != undefined) {
+            previousMessage = Object.assign({}, data);
+            device.updateStatus(data);
+          }
         // {"time" : "2018-06-02 08:27:20", "model" : "Acurite 986 Sensor", "id" : 3929, "channel" : "2F", "temperature_F" : -11, "temperature_C" : -23.889, "battery" : "OK", "status" : 0}
       } catch (err) {
         this.log.error("JSON Parse Error", message.toString(), err);
       }
     }
+
   }.bind(this));
   proc.on('close', function(code) {
     this.log.error('child close code (spawn)', code);
@@ -126,17 +133,35 @@ rtl_433Accessory.prototype = {
           break;
         case "motion":
           // {"time" : "2018-09-30 19:20:26", "model" : "Skylink HA-434TL motion sensor", "motion" : "true", "id" : "1e3e8", "raw" : "be3e8"}
-          var value = data.motion;
-          if (this.sensorService.getService(Service.MotionSensor).getCharacteristic(Characteristic.MotionDetected).value != value) {
-            this.sensorService.getService(Service.MotionSensor).getCharacteristic(CustomCharacteristic.LastActivation)
-              .updateValue(moment().unix() - this.sensorService.mLoggingService.getInitialTime());
+          //debug("this--->",this);
+          var value = (data.motion = "true" ? true : false);
+          if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value != value) {
+            this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
+              .updateValue(moment().unix() - this.loggingService.getInitialTime());
           }
-          this.sensorService.getService(Service.MotionSensor).getCharacteristic(Characteristic.MotionDetected)
+          this.sensorService.getCharacteristic(Characteristic.MotionDetected)
             .updateValue(value);
-          this.sensorService.mLoggingService.addEntry({
+          this.loggingService.addEntry({
             time: moment().unix(),
             status: value
           });
+
+          if (value) {
+            clearTimeout(this.motionTimeout);
+            this.motionTimeout = setTimeout(function() {
+              var value = false;
+              if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value != value) {
+                this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
+                  .updateValue(moment().unix() - this.loggingService.getInitialTime());
+              }
+              this.sensorService.getCharacteristic(Characteristic.MotionDetected)
+                .updateValue(value);
+              this.loggingService.addEntry({
+                time: moment().unix(),
+                status: value
+              });
+            }.bind(this), 2 * 60 * 1000);
+          }
 
           break;
         default:
@@ -172,6 +197,7 @@ rtl_433Accessory.prototype = {
           });
 
         this.deviceTimeout = 5;
+        this.timeoutCharacteristic = Characteristic.CurrentTemperature;
         this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
         this.sensorService.log = this.log;
@@ -184,6 +210,7 @@ rtl_433Accessory.prototype = {
         this.sensorService = new Service.MotionSensor(this.name);
 
         this.deviceTimeout = 120;
+        this.timeoutCharacteristic = Characteristic.MotionDetected;
         this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
         this.sensorService.log = this.log;
@@ -203,7 +230,7 @@ rtl_433Accessory.prototype = {
 function deviceTimeout() {
   this.log("Timeout", this.name);
   this.sensorService
-    .getCharacteristic(Characteristic.StatusLowBattery).updateValue(new Error("No response"));
+    .getCharacteristic(this.timeoutCharacteristic).updateValue(new Error("No response"));
 }
 
 function roundInt(string) {
@@ -212,9 +239,36 @@ function roundInt(string) {
 
 function getDevice(unit) {
   for (var i in myAccessories) {
-    if (myAccessories[i].unit == unit)
+    if (myAccessories[i].id == unit)
       return myAccessories[i];
   }
-  this.log.error("ERROR: unknown unit -", unit);
+  this.log.error("ERROR: unknown device id -", unit);
   return (undefined);
+}
+
+function seconds(dateTime) {
+  //"2018-10-01 20:52:33"
+  var hms = dateTime.split(" ");
+  //debug("TIME", hms[1]);
+  var tt = hms[1].split(":");
+  var sec = tt[0] * 3600 + tt[1] * 60 + tt[2] * 1;
+  return (sec);
+}
+
+function duplicateMessage(last, current) {
+
+  if (last) {
+    //debug("Last %s, Current %s", JSON.stringify(last), JSON.stringify(current));
+    if ((seconds(current.time) - seconds(last.time)) < 2) {
+      var tCurrent = Object.assign({}, current);
+      var tLast = Object.assign({}, last);
+      delete tCurrent.time;
+      delete tLast.time;
+      //debug("LAST %s, CURRENT %s, isEqual %s", JSON.stringify(tLast), JSON.stringify(tCurrent),_.isEqual(tLast, tCurrent));
+      if (_.isEqual(tLast, tCurrent)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
