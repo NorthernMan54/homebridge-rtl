@@ -1,7 +1,7 @@
 'use strict';
 
 var debug = require('debug')('homebridge-rtl_433');
-var logger = require("mcuiot-logger").logger;
+var Logger = require("mcuiot-logger").logger;
 const moment = require('moment');
 var os = require("os");
 var _ = require('lodash');
@@ -23,7 +23,6 @@ module.exports = (homebridge) => {
 };
 
 function rtl_433Plugin(log, config, api) {
-
   this.log = log;
   this.refresh = config['refresh'] || 60; // Update every minute
   this.options = config.options || {};
@@ -32,7 +31,7 @@ function rtl_433Plugin(log, config, api) {
   this.devices = config['devices'];
   if (this.spreadsheetId) {
     this.log_event_counter = 59;
-    this.logger = new logger(this.spreadsheetId);
+    this.logger = new Logger(this.spreadsheetId);
   }
 }
 
@@ -43,18 +42,18 @@ rtl_433Plugin.prototype = {
       myAccessories.push(new rtl_433Accessory(this.devices[i], this.log, i));
     }
     callback(myAccessories);
-    //console.log("Pre-This", this);
+    // console.log("Pre-This", this);
     rtl_433Server.call(this);
   }
-}
+};
 
 function rtl_433Server() {
-  //console.log("This", this);
+  // console.log("This", this);
   var child_process = require('child_process');
   var readline = require('readline');
   var previousMessage;
   this.log("Spawning rtl_433");
-  var proc = child_process.spawn('/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si']);
+  var proc = child_process.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si']);
   readline.createInterface({
     input: proc.stdout,
     terminal: false
@@ -66,17 +65,17 @@ function rtl_433Server() {
         var data = JSON.parse(message.toString());
         var device = getDevice.call(this, data.id);
 
-        if (!duplicateMessage(previousMessage, data))
-          if (device != undefined) {
+        if (!duplicateMessage(previousMessage, data)) {
+          if (device !== undefined) {
             previousMessage = Object.assign({}, data);
             device.updateStatus(data);
           }
+        }
         // {"time" : "2018-06-02 08:27:20", "model" : "Acurite 986 Sensor", "id" : 3929, "channel" : "2F", "temperature_F" : -11, "temperature_C" : -23.889, "battery" : "OK", "status" : 0}
       } catch (err) {
         this.log.error("JSON Parse Error", message.toString(), err);
       }
     }
-
   }.bind(this));
   proc.on('close', function(code) {
     this.log.error('child close code (spawn)', code);
@@ -123,7 +122,7 @@ rtl_433Accessory.prototype = {
           }
           this.sensorService
             .setCharacteristic(Characteristic.CurrentTemperature, roundInt(data.temperature_C));
-          if (data.battery == "OK") {
+          if (data.battery === "OK") {
             this.sensorService
               .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
           } else {
@@ -133,9 +132,9 @@ rtl_433Accessory.prototype = {
           break;
         case "motion":
           // {"time" : "2018-09-30 19:20:26", "model" : "Skylink HA-434TL motion sensor", "motion" : "true", "id" : "1e3e8", "raw" : "be3e8"}
-          //debug("this--->",this);
-          var value = (data.motion = "true" ? true : false);
-          if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value != value) {
+          // debug("this--->",this);
+          var value = (data.motion === "true");
+          if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
             this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
               .updateValue(moment().unix() - this.loggingService.getInitialTime());
           }
@@ -150,7 +149,7 @@ rtl_433Accessory.prototype = {
             clearTimeout(this.motionTimeout);
             this.motionTimeout = setTimeout(function() {
               var value = false;
-              if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value != value) {
+              if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
                 this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
                   .updateValue(moment().unix() - this.loggingService.getInitialTime());
               }
@@ -167,8 +166,6 @@ rtl_433Accessory.prototype = {
         default:
           this.log.error("No events defined for sensor type %s", this.type);
       }
-
-
     } catch (err) {
       this.log.error("Error", err);
     }
@@ -225,7 +222,7 @@ rtl_433Accessory.prototype = {
 
     return [informationService, this.sensorService, this.loggingService];
   }
-}
+};
 
 function deviceTimeout() {
   this.log("Timeout", this.name);
@@ -239,32 +236,32 @@ function roundInt(string) {
 
 function getDevice(unit) {
   for (var i in myAccessories) {
-    if (myAccessories[i].id == unit)
+    if (myAccessories[i].id === unit) {
       return myAccessories[i];
+    }
   }
   this.log.error("ERROR: unknown device id -", unit);
   return (undefined);
 }
 
 function seconds(dateTime) {
-  //"2018-10-01 20:52:33"
+  // "2018-10-01 20:52:33"
   var hms = dateTime.split(" ");
-  //debug("TIME", hms[1]);
+  // debug("TIME", hms[1]);
   var tt = hms[1].split(":");
   var sec = tt[0] * 3600 + tt[1] * 60 + tt[2] * 1;
   return (sec);
 }
 
 function duplicateMessage(last, current) {
-
   if (last) {
-    //debug("Last %s, Current %s", JSON.stringify(last), JSON.stringify(current));
+    // debug("Last %s, Current %s", JSON.stringify(last), JSON.stringify(current));
     if ((seconds(current.time) - seconds(last.time)) < 2) {
       var tCurrent = Object.assign({}, current);
       var tLast = Object.assign({}, last);
       delete tCurrent.time;
       delete tLast.time;
-      //debug("LAST %s, CURRENT %s, isEqual %s", JSON.stringify(tLast), JSON.stringify(tCurrent),_.isEqual(tLast, tCurrent));
+      // debug("LAST %s, CURRENT %s, isEqual %s", JSON.stringify(tLast), JSON.stringify(tCurrent),_.isEqual(tLast, tCurrent));
       if (_.isEqual(tLast, tCurrent)) {
         return true;
       }
