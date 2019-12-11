@@ -1,6 +1,6 @@
 {
   "name": "homebridge-rtl",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "RTL_433 based sensor for Homebridge",
   "main": "sensor.js",
   "scripts": {
@@ -31,10 +31,10 @@
   "homepage": "https://github.com/northernman54/homebridge-rtl#readme",
   "dependencies": {
     "debug": "^2.2.0",
-    "mcuiot-logger": "^0.0.7",
-    "moment": "^2.18.1",
-    "fakegato-history": "^0.4.0",
-    "lodash": "~> 4.17.5"
+    "fakegato-history": "^0.5.6",
+    "lodash": "~> 4.17.5",
+    "mcuiot-logger": "0.0.12",
+    "moment": "^2.18.1"
   },
   "directories": {
     "lib": "lib"

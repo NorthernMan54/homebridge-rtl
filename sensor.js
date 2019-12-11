@@ -238,7 +238,8 @@ function roundInt(string) {
 
 function getDevice(unit) {
   for (var i in myAccessories) {
-    if (myAccessories[i].id === unit) {
+    // == is correct test, Acurite uses a numeric value
+    if (myAccessories[i].id == unit) {
       return myAccessories[i];
     }
   }
