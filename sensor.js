@@ -195,7 +195,7 @@ rtl_433Accessory.prototype = {
             maxValue: 100
           });
 
-        this.deviceTimeout = 5;
+        this.deviceTimeout = 120;
         this.timeoutCharacteristic = Characteristic.CurrentTemperature;
         this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
