@@ -27,9 +27,10 @@ function rtl433Plugin(log, config, api) {
   this.refresh = config['refresh'] || 60; // Update every minute
   this.options = config.options || {};
   this.storage = config['storage'] || "fs";
+
   this.spreadsheetId = config['spreadsheetId'];
   this.devices = config['devices'];
-  this.alarm = config['alarm'] || false;
+
   if (this.spreadsheetId) {
     this.log_event_counter = 59;
     this.logger = new Logger(this.spreadsheetId);
@@ -100,6 +101,8 @@ function Rtl433Accessory(device, log, unit) {
   this.type = device.type;
   this.log = log;
   this.name = device.name;
+  this.alarm = device['alarm'] || false;
+  this.deviceTimeout = device['timeout'] || 120; // Mark as unavailable after 2 hours
 }
 
 Rtl433Accessory.prototype = {
@@ -131,6 +134,16 @@ Rtl433Accessory.prototype = {
           } else {
             this.sensorService
               .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+          }
+          if (this.alarm) {
+            if (roundInt(data.temperature_C) > this.alarm) {
+              this.alarmService
+                .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+              debug(this.name + " Temperature Alarm" + roundInt(data.temperature_C) + " > " + this.alarm);
+            } else {
+              this.alarmService
+                .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_DETECTED);
+            }
           }
           break;
         case "motion":
@@ -196,7 +209,6 @@ Rtl433Accessory.prototype = {
             maxValue: 100
           });
 
-        this.deviceTimeout = 120;
         this.timeoutCharacteristic = Characteristic.CurrentTemperature;
         this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
@@ -205,11 +217,13 @@ Rtl433Accessory.prototype = {
           storage: this.storage,
           minutes: this.refresh * 10 / 60
         });
+        if (this.alarm) {
+          this.alarmService = new Service.ContactSensor(this.name + " Alarm");
+        }
         break;
       case "motion":
         this.sensorService = new Service.MotionSensor(this.name);
 
-        this.deviceTimeout = 120;
         this.timeoutCharacteristic = Characteristic.MotionDetected;
         this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
@@ -223,7 +237,11 @@ Rtl433Accessory.prototype = {
         this.log.error("No events defined for sensor type %s", this.type);
     }
 
-    return [informationService, this.sensorService, this.loggingService];
+    if (this.alarm) {
+      return [informationService, this.sensorService, this.alarmService, this.loggingService];
+    } else {
+      return [informationService, this.sensorService, this.loggingService];
+    }
   }
 };
 
