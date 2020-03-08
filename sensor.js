@@ -19,41 +19,42 @@ module.exports = (homebridge) => {
   CustomCharacteristic = require('./lib/CustomCharacteristic.js')(homebridge);
   FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
-  homebridge.registerPlatform('homebridge-rtl_433', 'rtl_433', rtl_433Plugin);
+  homebridge.registerPlatform('homebridge-rtl_433', 'rtl_433', rtl433Plugin);
 };
 
-function rtl_433Plugin(log, config, api) {
+function rtl433Plugin(log, config, api) {
   this.log = log;
   this.refresh = config['refresh'] || 60; // Update every minute
   this.options = config.options || {};
   this.storage = config['storage'] || "fs";
   this.spreadsheetId = config['spreadsheetId'];
   this.devices = config['devices'];
+  this.alarm = config['alarm'] || false;
   if (this.spreadsheetId) {
     this.log_event_counter = 59;
     this.logger = new Logger(this.spreadsheetId);
   }
 }
 
-rtl_433Plugin.prototype = {
+rtl433Plugin.prototype = {
   accessories: function(callback) {
     for (var i in this.devices) {
       this.log("Adding device", i, this.devices[i].name);
-      myAccessories.push(new rtl_433Accessory(this.devices[i], this.log, i));
+      myAccessories.push(new Rtl433Accessory(this.devices[i], this.log, i));
     }
     callback(myAccessories);
     // console.log("Pre-This", this);
-    rtl_433Server.call(this);
+    rtl433Server.call(this);
   }
 };
 
-function rtl_433Server() {
+function rtl433Server() {
   // console.log("This", this);
-  var child_process = require('child_process');
+  var childProcess = require('child_process');
   var readline = require('readline');
   var previousMessage;
   this.log("Spawning rtl_433");
-  var proc = child_process.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si'], {
+  var proc = childProcess.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si'], {
     shell: true
   });
   readline.createInterface({
@@ -81,7 +82,7 @@ function rtl_433Server() {
   }.bind(this));
   proc.on('close', function(code) {
     this.log.error('child close code (spawn)', code);
-    setTimeout(rtl_433Server.bind(this), 10 * 1000);
+    setTimeout(rtl433Server.bind(this), 10 * 1000);
   }.bind(this));
   proc.on('disconnect', function(code) {
     this.log.error('child disconnect code (spawn)', code);
@@ -94,14 +95,14 @@ function rtl_433Server() {
   }.bind(this));
 }
 
-function rtl_433Accessory(device, log, unit) {
+function Rtl433Accessory(device, log, unit) {
   this.id = device.id;
   this.type = device.type;
   this.log = log;
   this.name = device.name;
 }
 
-rtl_433Accessory.prototype = {
+Rtl433Accessory.prototype = {
   updateStatus: function(data) {
     try {
       this.log("Updating", this.name);

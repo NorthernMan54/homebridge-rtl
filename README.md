@@ -27,6 +27,7 @@ I have tested this on both a Mac and a RPI3
 * `name`: "Front Porch" - Name of device for display in the Home App
 * `id`: id number of device - To find the ID of your device, run homebridge in DEBUG mode, and it will log the message received from all rtl_433 devices.  See below for examples
 * `type`: Type of sensor device.  Supported sensors are `motion` and `temperature`
+* `alarm`: Optional, Create a fake contact sensor called name + Alarm.  Value is temperature in Celsius that if exceeded will trigger contact sensor.
 
 Example configuration:
 
