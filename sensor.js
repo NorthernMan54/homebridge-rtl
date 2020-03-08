@@ -220,7 +220,7 @@ Rtl433Accessory.prototype = {
         if (this.alarm) {
           this.alarmService = new Service.ContactSensor(this.name + " Alarm");
           informationService
-            .setCharacteristic(Characteristic.Model, "Temperature Sensor with Alarm " + this.alarm);
+            .setCharacteristic(Characteristic.Model, "Temperature Sensor with Alarm @ " + this.alarm);
         } else {
           informationService
             .setCharacteristic(Characteristic.Model, "Temperature Sensor");
