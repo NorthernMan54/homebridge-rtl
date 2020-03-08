@@ -219,6 +219,11 @@ Rtl433Accessory.prototype = {
         });
         if (this.alarm) {
           this.alarmService = new Service.ContactSensor(this.name + " Alarm");
+          informationService
+            .setCharacteristic(Characteristic.Model, "Temperature Sensor with Alarm " + this.alarm);
+        } else {
+          informationService
+            .setCharacteristic(Characteristic.Model, "Temperature Sensor");
         }
         break;
       case "motion":
@@ -232,6 +237,8 @@ Rtl433Accessory.prototype = {
           storage: this.storage,
           minutes: this.refresh * 10 / 60
         });
+        informationService
+          .setCharacteristic(Characteristic.Model, "Motion Sensor");
         break;
       default:
         this.log.error("No events defined for sensor type %s", this.type);
