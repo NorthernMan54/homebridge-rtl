@@ -11,6 +11,7 @@ For sensors, I'm using these
 
 * Supported sensors include Motion and Temperature
 * Also shows "not responding" if the sensor stops sending data
+* For temperature sensors, has ability to create temperature Alarms if the temperature exceeds a value
 
 I have tested this on both a Mac and a RPI3
 
