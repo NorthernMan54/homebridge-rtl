@@ -67,7 +67,12 @@ function rtl433Server() {
     if (message.toString().startsWith('{')) {
       try {
         var data = JSON.parse(message.toString());
-        var device = getDevice.call(this, data.id);
+        var device;
+        if (data.id) {
+          device = getDevice.call(this, data.id);
+        } else {
+          device = getDevice.call(this, data.channel);
+        }
 
         if (!duplicateMessage(previousMessage, data)) {
           if (device !== undefined) {
@@ -75,6 +80,7 @@ function rtl433Server() {
             device.updateStatus(data);
           }
         }
+        // {"time" : "2020-03-14 11:34:22", "model" : "Philips outdoor temperature sensor", "channel" : 1, "temperature_C" : 1.500, "battery" : "LOW"}
         // {"time" : "2018-06-02 08:27:20", "model" : "Acurite 986 Sensor", "id" : 3929, "channel" : "2F", "temperature_F" : -11, "temperature_C" : -23.889, "battery" : "OK", "status" : 0}
       } catch (err) {
         this.log.error("JSON Parse Error", message.toString(), err);
