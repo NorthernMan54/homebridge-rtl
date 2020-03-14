@@ -74,6 +74,11 @@ Thu, 04 Apr 2019 01:07:48 GMT homebridge-rtl_433{"time" : "2020-03-14 11:34:22",
 id is the channel 1
 ```
 
+```
+Sat, 14 Mar 2020 18:40:41 GMT homebridge-rtl_433 Message {"time" : "2020-03-14 14:40:41", "model" : "Acurite tower sensor", "id" : 15424, "sensor_id" : 15424, "channel" : "A", "temperature_C" : 3.600, "humidity" : 60, "battery_low" : 0}
+
+id is 15424
+```
 
 ## Credits
 * merbanan - RTL_433 Sensor decoder

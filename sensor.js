@@ -134,12 +134,14 @@ Rtl433Accessory.prototype = {
           }
           this.sensorService
             .setCharacteristic(Characteristic.CurrentTemperature, roundInt(data.temperature_C));
-          if (data.battery === "OK") {
-            this.sensorService
-              .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
-          } else {
-            this.sensorService
-              .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+          if (data.battery) {
+            if (data.battery === "OK") {
+              this.sensorService
+                .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+            } else {
+              this.sensorService
+                .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+            }
           }
           if (this.alarm) {
             if (roundInt(data.temperature_C) > this.alarm) {
