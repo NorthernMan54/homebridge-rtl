@@ -54,12 +54,24 @@ Example configuration:
 
 ```
 Wed, 03 Apr 2019 13:43:05 GMT homebridge-rtl_433 Message {"time" : "2019-04-03 09:43:05", "model" : "Skylink HA-434TL motion sensor", "motion" : "false", "id" : "1e3e8", "raw" : "5e3e8"}
+
+id is 1e3e8
 ```
 
 * Temperature sensor log entries
 
 ```
 Thu, 04 Apr 2019 01:07:48 GMT homebridge-rtl_433 Message {"time" : "2018-06-02 08:27:20", "model" : "Acurite 986 Sensor", "id" : 3929, "channel" : "2F", "temperature_F" : -11, "temperature_C" : -23.889, "battery" : "OK", "status" : 0}
+
+id is 3929
+```
+
+If the device does not transmit an ID value, will default to channel
+
+```
+Thu, 04 Apr 2019 01:07:48 GMT homebridge-rtl_433{"time" : "2020-03-14 11:34:22", "model" : "Philips outdoor temperature sensor", "channel" : 1, "temperature_C" : 1.500, "battery" : "LOW"}
+
+id is the channel 1
 ```
 
 
