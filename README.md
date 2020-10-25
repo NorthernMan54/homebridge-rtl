@@ -4,11 +4,16 @@
 
 Homebridge plugin to display information from 433 Mhz sensors, like the `Skylink HA-434TL motion sensor` or the `AcuRite Digital Wireless Fridge and Freezer Thermometer` temperature sensor.  This plugin uses the [RTL_433](https://github.com/merbanan/rtl_433) package to listen to the sensor in-conjunction with a sdr device to receive the signals from the sensor.  In my setup I use this [RTL_SDR](https://www.amazon.ca/gp/product/B00PAGS0HO/ref=ppx_yo_dt_b_asin_title_o07_s00?ie=UTF8&psc=1) to receive the radio signal from the sensor.
 
+## Supported Sensors
 For sensors, I'm using these
 
 * [Fridge Temperature](https://www.amazon.ca/gp/product/B004QJVU78/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1)
 * [Motion](https://www.amazon.ca/gp/product/B003CWGDTK/ref=ppx_yo_dt_b_asin_title_o05_s00?ie=UTF8&psc=1)
 
+Contributor added sensors:
+* [Mighty Mule Driveway alarm](https://www.amazon.com/Mighty-Mule-Wireless-Driveway-FM231/dp/B003765W0W) see [instructions here](MIGHTY-MULE-DRIVEWAY-ALARM-INSTRUCTIONS.md)
+
+## Features
 * Supported sensors include Motion and Temperature
 * Also shows "not responding" if the sensor stops sending data
 * For temperature sensors, has ability to create temperature Alarms if the temperature exceeds a value
