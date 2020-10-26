@@ -1,6 +1,6 @@
 {
   "name": "homebridge-rtl",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "RTL_433 based sensor for Homebridge",
   "main": "sensor.js",
   "scripts": {
@@ -32,7 +32,7 @@
   "dependencies": {
     "debug": "^2.2.0",
     "fakegato-history": "^0.5.6",
-    "lodash": "~> 4.17.5",
+    "lodash": "^4.17.20",
     "mcuiot-logger": "0.0.12",
     "moment": "^2.18.1"
   },
