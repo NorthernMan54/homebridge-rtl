@@ -67,17 +67,20 @@ function rtl433Server() {
     if (message.toString().startsWith('{')) {
       try {
         var data = JSON.parse(message.toString());
-        var device;
+        var devices = [];
         if (data.id) {
-          device = getDevice.call(this, data.id);
+          devices = getDevices.call(this, data.id);
         } else {
-          device = getDevice.call(this, data.channel);
+          devices = getDevices.call(this, data.channel);
         }
 
         if (!duplicateMessage(previousMessage, data)) {
-          if (device !== undefined) {
+          if (devices.length > 0) {
             previousMessage = Object.assign({}, data);
-            device.updateStatus(data);
+            for (var i in devices) {
+              var device = devices[i]
+              device.updateStatus(data);
+            }
           }
         }
         // {"time" : "2020-03-14 11:34:22", "model" : "Philips outdoor temperature sensor", "channel" : 1, "temperature_C" : 1.500, "battery" : "LOW"}
@@ -109,6 +112,7 @@ function Rtl433Accessory(device, log, unit) {
   this.name = device.name;
   this.alarm = device['alarm'] || false;
   this.deviceTimeout = device['timeout'] || 120; // Mark as unavailable after 2 hours
+  this.humidity = device['humidity'] || false; // Add humidity data to temerature sensor
 }
 
 Rtl433Accessory.prototype = {
@@ -120,20 +124,30 @@ Rtl433Accessory.prototype = {
       this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000);
       switch (this.type) {
         case "temperature":
-          this.loggingService.addEntry({
+          var humidity;
+          var entry = {
             time: moment().unix(),
             temp: roundInt(data.temperature_C)
-          });
+          }
+          if (this.humidity && data.humidity) {
+            humidity = roundInt(data.humidity)
+            entry.humidity = humidity
+          }
+          this.loggingService.addEntry(entry);
 
           if (this.spreadsheetId) {
             this.log_event_counter = this.log_event_counter + 1;
             if (this.log_event_counter > 59) {
-              this.logger.storeBME(this.name, 0, roundInt(data.temperature_C));
+              this.logger.storeBME(this.name, 0, roundInt(data.temperature_C), humidity);
               this.log_event_counter = 0;
             }
           }
           this.sensorService
             .setCharacteristic(Characteristic.CurrentTemperature, roundInt(data.temperature_C));
+          if (humidity !== undefined) {
+            this.sensorService
+            .setCharacteristic(Characteristic.CurrentRelativeHumidity, humidity)
+          }
           if (data.battery) {
             if (data.battery === "OK") {
               this.sensorService
@@ -154,6 +168,44 @@ Rtl433Accessory.prototype = {
             }
           }
           break;
+        case "humidity":
+            var entry = {
+              time: moment().unix(),
+              humidity: roundInt(data.humidity)
+            }
+            this.loggingService.addEntry(entry);
+
+            if (this.spreadsheetId) {
+              this.log_event_counter = this.log_event_counter + 1;
+              if (this.log_event_counter > 59) {
+                this.logger.storeBME(this.name, 0, (undefined), roundInt(data.humidity));
+                this.log_event_counter = 0;
+              }
+            }
+
+            this.sensorService
+              .setCharacteristic(Characteristic.CurrentRelativeHumidity, roundInt(data.humidity))
+
+            if (data.battery) {
+              if (data.battery === "OK") {
+                this.sensorService
+                  .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+              } else {
+                this.sensorService
+                  .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+              }
+            }
+            if (this.alarm) {
+              if (roundInt(data.humidity) > this.alarm) {
+                this.alarmService
+                  .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+                debug(this.name + " Humidity Alarm" + roundInt(data.humidity) + " > " + this.alarm);
+              } else {
+                this.alarmService
+                  .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_DETECTED);
+              }
+            }
+            break;
         case "motion":
           // {"time" : "2018-09-30 19:20:26", "model" : "Skylink HA-434TL motion sensor", "motion" : "true", "id" : "1e3e8", "raw" : "be3e8"}
           // debug("this--->",this);
@@ -234,6 +286,33 @@ Rtl433Accessory.prototype = {
             .setCharacteristic(Characteristic.Model, "Temperature Sensor");
         }
         break;
+      case "humidity":
+          this.sensorService = new Service.HumiditySensor(this.name);
+  
+          this.sensorService
+            .getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .setProps({
+              minValue: 0,
+              maxValue: 100
+            });
+  
+          this.timeoutCharacteristic = Characteristic.CurrentRelativeHumidity;
+          this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
+  
+          this.sensorService.log = this.log;
+          this.loggingService = new FakeGatoHistoryService("weather", this.sensorService, {
+            storage: this.storage,
+            minutes: this.refresh * 10 / 60
+          });
+          if (this.alarm) {
+            this.alarmService = new Service.ContactSensor(this.name + " Alarm");
+            informationService
+              .setCharacteristic(Characteristic.Model, "Humidity Sensor with Alarm @ " + this.alarm);
+          } else {
+            informationService
+              .setCharacteristic(Characteristic.Model, "Humidity Sensor");
+          }
+          break;
       case "motion":
         this.sensorService = new Service.MotionSensor(this.name);
 
@@ -270,15 +349,18 @@ function roundInt(string) {
   return Math.round(parseFloat(string) * 10) / 10;
 }
 
-function getDevice(unit) {
+function getDevices(unit) {
+  var devices = [];
   for (var i in myAccessories) {
     // == is correct test, Acurite uses a numeric value
     if (myAccessories[i].id == unit) {
-      return myAccessories[i];
+      devices.push(myAccessories[i]);
     }
   }
-  this.log.error("ERROR: unknown device id -", unit);
-  return (undefined);
+  if (devices.length === 0) {
+    this.log.error("ERROR: unknown device id -", unit);
+  }
+  return devices;
 }
 
 function seconds(dateTime) {
