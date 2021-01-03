@@ -148,14 +148,11 @@ Rtl433Accessory.prototype = {
             this.sensorService
             .setCharacteristic(Characteristic.CurrentRelativeHumidity, humidity)
           }
-          if (data.battery) {
-            if (data.battery === "OK") {
-              this.sensorService
-                .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
-            } else {
-              this.sensorService
-                .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
-            }
+
+          if (data.battery !== undefined || data.battery_ok != undefined) {
+            var batteryOk = data.battery === "OK" || data.battery_ok === 1
+            this.sensorService
+              .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
           }
           if (this.alarm) {
             if (roundInt(data.temperature_C) > this.alarm) {
@@ -186,14 +183,10 @@ Rtl433Accessory.prototype = {
             this.sensorService
               .setCharacteristic(Characteristic.CurrentRelativeHumidity, roundInt(data.humidity))
 
-            if (data.battery) {
-              if (data.battery === "OK") {
-                this.sensorService
-                  .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
-              } else {
-                this.sensorService
-                  .setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
-              }
+            if (data.battery !== undefined || data.battery_ok != undefined) {
+              var batteryOk = data.battery === "OK" || data.battery_ok === 1
+              this.sensorService
+                .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
             }
             if (this.alarm) {
               if (roundInt(data.humidity) > this.alarm) {
