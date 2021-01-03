@@ -89,3 +89,4 @@ id is 15424
 ## Credits
 * merbanan - RTL_433 Sensor decoder
 * simont77 - History Service
+* matopeto - Humidity Sensor Support

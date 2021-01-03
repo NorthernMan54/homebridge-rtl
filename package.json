@@ -1,6 +1,6 @@
 {
   "name": "homebridge-rtl",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "RTL_433 based sensor for Homebridge",
   "main": "sensor.js",
   "scripts": {
