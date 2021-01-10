@@ -110,7 +110,7 @@ function Rtl433Accessory(device, log, unit) {
   this.type = device.type;
   this.log = log;
   this.name = device.name;
-  this.alarm = device['alarm'] || false;
+  this.alarm = device['alarm']
   this.deviceTimeout = device['timeout'] || 120; // Mark as unavailable after 2 hours
   this.humidity = device['humidity'] || false; // Add humidity data to temerature sensor
 }
@@ -154,7 +154,7 @@ Rtl433Accessory.prototype = {
             this.sensorService
               .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
           }
-          if (this.alarm) {
+          if (this.alarm !== undefined) {
             if (roundInt(data.temperature_C) > this.alarm) {
               this.alarmService
                 .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
@@ -188,7 +188,7 @@ Rtl433Accessory.prototype = {
               this.sensorService
                 .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
             }
-            if (this.alarm) {
+            if (this.alarm !== undefined) {
               if (roundInt(data.humidity) > this.alarm) {
                 this.alarmService
                   .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
@@ -270,7 +270,7 @@ Rtl433Accessory.prototype = {
           storage: this.storage,
           minutes: this.refresh * 10 / 60
         });
-        if (this.alarm) {
+        if (this.alarm !== undefined) {
           this.alarmService = new Service.ContactSensor(this.name + " Alarm");
           informationService
             .setCharacteristic(Characteristic.Model, "Temperature Sensor with Alarm @ " + this.alarm);
@@ -297,7 +297,7 @@ Rtl433Accessory.prototype = {
             storage: this.storage,
             minutes: this.refresh * 10 / 60
           });
-          if (this.alarm) {
+          if (this.alarm !== undefined) {
             this.alarmService = new Service.ContactSensor(this.name + " Alarm");
             informationService
               .setCharacteristic(Characteristic.Model, "Humidity Sensor with Alarm @ " + this.alarm);
@@ -324,7 +324,7 @@ Rtl433Accessory.prototype = {
         this.log.error("No events defined for sensor type %s", this.type);
     }
 
-    if (this.alarm) {
+    if (this.alarm !== undefined) {
       return [informationService, this.sensorService, this.alarmService, this.loggingService];
     } else {
       return [informationService, this.sensorService, this.loggingService];
