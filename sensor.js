@@ -19,7 +19,7 @@ module.exports = (homebridge) => {
   CustomCharacteristic = require('./lib/CustomCharacteristic.js')(homebridge);
   FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
-  homebridge.registerPlatform('homebridge-rtl_433', 'rtl_433', rtl433Plugin);
+  homebridge.registerPlatform('homebridge-rtl', 'rtl_433', rtl433Plugin);
 };
 
 function rtl433Plugin(log, config, api) {
@@ -281,17 +281,17 @@ Rtl433Accessory.prototype = {
         break;
       case "humidity":
           this.sensorService = new Service.HumiditySensor(this.name);
-  
+
           this.sensorService
             .getCharacteristic(Characteristic.CurrentRelativeHumidity)
             .setProps({
               minValue: 0,
               maxValue: 100
             });
-  
+
           this.timeoutCharacteristic = Characteristic.CurrentRelativeHumidity;
           this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
-  
+
           this.sensorService.log = this.log;
           this.loggingService = new FakeGatoHistoryService("weather", this.sensorService, {
             storage: this.storage,
