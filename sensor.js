@@ -68,10 +68,14 @@ function rtl433Server() {
       try {
         var data = JSON.parse(message.toString());
         var devices = [];
+        this.message = message;
         if (data.id) {
           devices = getDevices.call(this, data.id);
-        } else {
+        } else if (data.channel) {
           devices = getDevices.call(this, data.channel);
+        } else {
+          this.log.error("FYI: RTL Message missing device or channel identifier.");
+          this.log("Message", this.message.toString());
         }
 
         if (!duplicateMessage(previousMessage, data)) {
@@ -146,7 +150,7 @@ Rtl433Accessory.prototype = {
             .setCharacteristic(Characteristic.CurrentTemperature, roundInt(data.temperature_C));
           if (humidity !== undefined) {
             this.sensorService
-            .setCharacteristic(Characteristic.CurrentRelativeHumidity, humidity)
+              .setCharacteristic(Characteristic.CurrentRelativeHumidity, humidity)
           }
 
           if (data.battery !== undefined || data.battery_ok != undefined) {
@@ -166,39 +170,39 @@ Rtl433Accessory.prototype = {
           }
           break;
         case "humidity":
-            var entry = {
-              time: moment().unix(),
-              humidity: roundInt(data.humidity)
-            }
-            this.loggingService.addEntry(entry);
+          var entry = {
+            time: moment().unix(),
+            humidity: roundInt(data.humidity)
+          }
+          this.loggingService.addEntry(entry);
 
-            if (this.spreadsheetId) {
-              this.log_event_counter = this.log_event_counter + 1;
-              if (this.log_event_counter > 59) {
-                this.logger.storeBME(this.name, 0, (undefined), roundInt(data.humidity));
-                this.log_event_counter = 0;
-              }
+          if (this.spreadsheetId) {
+            this.log_event_counter = this.log_event_counter + 1;
+            if (this.log_event_counter > 59) {
+              this.logger.storeBME(this.name, 0, (undefined), roundInt(data.humidity));
+              this.log_event_counter = 0;
             }
+          }
 
+          this.sensorService
+            .setCharacteristic(Characteristic.CurrentRelativeHumidity, roundInt(data.humidity))
+
+          if (data.battery !== undefined || data.battery_ok != undefined) {
+            var batteryOk = data.battery === "OK" || data.battery_ok === 1
             this.sensorService
-              .setCharacteristic(Characteristic.CurrentRelativeHumidity, roundInt(data.humidity))
-
-            if (data.battery !== undefined || data.battery_ok != undefined) {
-              var batteryOk = data.battery === "OK" || data.battery_ok === 1
-              this.sensorService
-                .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+              .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+          }
+          if (this.alarm !== undefined) {
+            if (roundInt(data.humidity) > this.alarm) {
+              this.alarmService
+                .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+              debug(this.name + " Humidity Alarm" + roundInt(data.humidity) + " > " + this.alarm);
+            } else {
+              this.alarmService
+                .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_DETECTED);
             }
-            if (this.alarm !== undefined) {
-              if (roundInt(data.humidity) > this.alarm) {
-                this.alarmService
-                  .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
-                debug(this.name + " Humidity Alarm" + roundInt(data.humidity) + " > " + this.alarm);
-              } else {
-                this.alarmService
-                  .setCharacteristic(Characteristic.ContactSensorState, Characteristic.ContactSensorState.CONTACT_DETECTED);
-              }
-            }
-            break;
+          }
+          break;
         case "motion":
           // {"time" : "2018-09-30 19:20:26", "model" : "Skylink HA-434TL motion sensor", "motion" : "true", "id" : "1e3e8", "raw" : "be3e8"}
           // debug("this--->",this);
@@ -280,32 +284,32 @@ Rtl433Accessory.prototype = {
         }
         break;
       case "humidity":
-          this.sensorService = new Service.HumiditySensor(this.name);
+        this.sensorService = new Service.HumiditySensor(this.name);
 
-          this.sensorService
-            .getCharacteristic(Characteristic.CurrentRelativeHumidity)
-            .setProps({
-              minValue: 0,
-              maxValue: 100
-            });
-
-          this.timeoutCharacteristic = Characteristic.CurrentRelativeHumidity;
-          this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
-
-          this.sensorService.log = this.log;
-          this.loggingService = new FakeGatoHistoryService("weather", this.sensorService, {
-            storage: this.storage,
-            minutes: this.refresh * 10 / 60
+        this.sensorService
+          .getCharacteristic(Characteristic.CurrentRelativeHumidity)
+          .setProps({
+            minValue: 0,
+            maxValue: 100
           });
-          if (this.alarm !== undefined) {
-            this.alarmService = new Service.ContactSensor(this.name + " Alarm");
-            informationService
-              .setCharacteristic(Characteristic.Model, "Humidity Sensor with Alarm @ " + this.alarm);
-          } else {
-            informationService
-              .setCharacteristic(Characteristic.Model, "Humidity Sensor");
-          }
-          break;
+
+        this.timeoutCharacteristic = Characteristic.CurrentRelativeHumidity;
+        this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
+
+        this.sensorService.log = this.log;
+        this.loggingService = new FakeGatoHistoryService("weather", this.sensorService, {
+          storage: this.storage,
+          minutes: this.refresh * 10 / 60
+        });
+        if (this.alarm !== undefined) {
+          this.alarmService = new Service.ContactSensor(this.name + " Alarm");
+          informationService
+            .setCharacteristic(Characteristic.Model, "Humidity Sensor with Alarm @ " + this.alarm);
+        } else {
+          informationService
+            .setCharacteristic(Characteristic.Model, "Humidity Sensor");
+        }
+        break;
       case "motion":
         this.sensorService = new Service.MotionSensor(this.name);
 
