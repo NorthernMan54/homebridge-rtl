@@ -351,7 +351,8 @@ function getDevices(unit) {
     }
   }
   if (devices.length === 0) {
-    this.log.error("ERROR: unknown device id -", unit);
+    this.log.error("FYI: Message from unknown device ID", unit);
+    this.log("Message", this.message.toString());
   }
   return devices;
 }
