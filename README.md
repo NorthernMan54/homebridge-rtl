@@ -50,16 +50,12 @@ Example configuration:
   }]
 ```
 
-## Sample log file entries from homebridge in DEBUG mode to determine sensor ID
-
-* To start homebridge in DEBUG mode please use this command
-
-`DEBUG=* homebridge`
+## Sample log file entries from homebridge to determine sensor ID
 
 * Motion sensor log entries
 
 ```
-Wed, 03 Apr 2019 13:43:05 GMT homebridge-rtl_433 Message {"time" : "2019-04-03 09:43:05", "model" : "Skylink HA-434TL motion sensor", "motion" : "false", "id" : "1e3e8", "raw" : "5e3e8"}
+Message {"time" : "2019-04-03 09:43:05", "model" : "Skylink HA-434TL motion sensor", "motion" : "false", "id" : "1e3e8", "raw" : "5e3e8"}
 
 id is 1e3e8
 ```
@@ -67,21 +63,24 @@ id is 1e3e8
 * Temperature sensor log entries
 
 ```
-Thu, 04 Apr 2019 01:07:48 GMT homebridge-rtl_433 Message {"time" : "2018-06-02 08:27:20", "model" : "Acurite 986 Sensor", "id" : 3929, "channel" : "2F", "temperature_F" : -11, "temperature_C" : -23.889, "battery" : "OK", "status" : 0}
+[rtl_433] FYI: Message from unknown device ID 21650
+[rtl_433] Message {"time" : "2021-02-02 10:22:30", "model" : "Acurite 986 Sensor", "id" : 21650, "channel" : "1R", "temperature_C" : 20.556, "battery" : "OK", "status" : 0}
+[rtl_433] FYI: Message from unknown device ID 21650
+[rtl_433] Message {"time" : "2021-02-02 10:22:30", "model" : "Acurite 986 Sensor", "id" : 21650, "channel" : "1R", "temperature_C" : 20.556, "battery" : "OK", "status" : 0}
 
-id is 3929
+id is 21650
 ```
 
 If the device does not transmit an ID value, will default to channel
 
 ```
-Thu, 04 Apr 2019 01:07:48 GMT homebridge-rtl_433{"time" : "2020-03-14 11:34:22", "model" : "Philips outdoor temperature sensor", "channel" : 1, "temperature_C" : 1.500, "battery" : "LOW"}
+Message {"time" : "2020-03-14 11:34:22", "model" : "Philips outdoor temperature sensor", "channel" : 1, "temperature_C" : 1.500, "battery" : "LOW"}
 
 id is the channel 1
 ```
 
 ```
-Sat, 14 Mar 2020 18:40:41 GMT homebridge-rtl_433 Message {"time" : "2020-03-14 14:40:41", "model" : "Acurite tower sensor", "id" : 15424, "sensor_id" : 15424, "channel" : "A", "temperature_C" : 3.600, "humidity" : 60, "battery_low" : 0}
+Message {"time" : "2020-03-14 14:40:41", "model" : "Acurite tower sensor", "id" : 15424, "sensor_id" : 15424, "channel" : "A", "temperature_C" : 3.600, "humidity" : 60, "battery_low" : 0}
 
 id is 15424
 ```
