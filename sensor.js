@@ -313,6 +313,8 @@ Rtl433Accessory.prototype = {
       case "motion":
         this.sensorService = new Service.MotionSensor(this.name);
 
+        this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
+
         this.timeoutCharacteristic = Characteristic.MotionDetected;
         this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
