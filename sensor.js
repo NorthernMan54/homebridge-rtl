@@ -294,7 +294,8 @@ Rtl433Accessory.prototype = {
         this.sensorService.log = this.log;
         this.loggingService = new FakeGatoHistoryService("weather", this.sensorService, {
           storage: this.storage,
-          minutes: this.refresh * 10 / 60
+          minutes: this.refresh * 10 / 60,
+          disableRepeatLastData: true
         });
         if (this.alarm !== undefined) {
           this.alarmService = new Service.ContactSensor(this.name + " Alarm");
@@ -321,7 +322,8 @@ Rtl433Accessory.prototype = {
         this.sensorService.log = this.log;
         this.loggingService = new FakeGatoHistoryService("weather", this.sensorService, {
           storage: this.storage,
-          minutes: this.refresh * 10 / 60
+          minutes: this.refresh * 10 / 60,
+          disableRepeatLastData: true
         });
         if (this.alarm !== undefined) {
           this.alarmService = new Service.ContactSensor(this.name + " Alarm");
