@@ -51,11 +51,15 @@ rtl433Plugin.prototype = {
 
 function rtl433Server() {
   // console.log("This", this);
+  console.log("This", this);
   var childProcess = require('child_process');
   var readline = require('readline');
   var previousMessage;
   this.log("Spawning rtl_433");
-  var proc = childProcess.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si'], {
+//  var proc = childProcess.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si'], {
+  // DO NOT RUN homebridge AS ROOT
+  // start outside homebride (as root) the cmd: rtl_433 -v -F json -C si -M protocol > /tmp/rtl433.json
+  var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
     shell: true
   });
   readline.createInterface({
@@ -205,8 +209,10 @@ Rtl433Accessory.prototype = {
           break;
         case "motion":
           // {"time" : "2018-09-30 19:20:26", "model" : "Skylink HA-434TL motion sensor", "motion" : "true", "id" : "1e3e8", "raw" : "be3e8"}
-          // debug("this--->",this);
-          var value = (data.motion === "true");
+	  // {"time" : "2022-03-17 21:58:46.319049", "protocol" : 68, "model" : "Kerui-Security", "id" : 840811, "cmd" : 10, "motion" : 1, "state" : "motion" }
+          // debug("update motion this--->",this);
+
+          var value = (data.motion === "true") || (data.motion === 1) ;
           if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
             this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
               .updateValue(moment().unix() - this.loggingService.getInitialTime());
@@ -236,6 +242,22 @@ Rtl433Accessory.prototype = {
           }
 
           break;
+        case "contact":
+	  // {"time" : "2022-03-17 23:04:08.430623", "protocol" : 68, "model" : "Kerui-Security", "id" : 297536, "cmd" : 14, "opened" : 1, "state" : "open" }
+	  // {"time" : "2022-03-17 23:04:19.447761", "protocol" : 68, "model" : "Kerui-Security", "id" : 297536, "cmd" : 7, "opened" : 0, "state" : "close" }
+          // debug("update door this--->",this);
+          // console.log("update door this--->",this);
+
+          this.sensorService
+              .setCharacteristic(Characteristic.ContactSensorState, data.opened );
+
+          if (data.battery !== undefined || data.battery_ok != undefined) {
+            var batteryOk = data.battery === "OK" || data.battery_ok === 1
+            this.sensorService
+              .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+          }
+           break;
+
         default:
           this.log.error("No events defined for sensor type %s", this.type);
       }
@@ -326,6 +348,18 @@ Rtl433Accessory.prototype = {
         informationService
           .setCharacteristic(Characteristic.Model, "Motion Sensor");
         break;
+      case "contact":
+       // debug("get door this--->",this);
+       // console.log("get door this--->",this);
+
+       this.sensorService = new Service.ContactSensor(this.name);
+       this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
+
+       this.sensorService.log = this.log;
+       informationService
+          .setCharacteristic(Characteristic.Model, "Contact Sensor");
+        break;
+
       default:
         this.log.error("No events defined for sensor type %s", this.type);
     }
