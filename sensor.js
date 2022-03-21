@@ -51,17 +51,15 @@ rtl433Plugin.prototype = {
 
 function rtl433Server() {
   // console.log("This", this);
-  console.log("This", this);
   var childProcess = require('child_process');
   var readline = require('readline');
   var previousMessage;
   this.log("Spawning rtl_433");
-//  var proc = childProcess.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si'], {
-  // DO NOT RUN homebridge AS ROOT
-  // start outside homebride (as root) the cmd: rtl_433 -v -F json -C si -M protocol > /tmp/rtl433.json
-  var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
+  // if you start rtl_433 outside homebride to get log: rtl_433 -v -F json -C si -M protocol > /tmp/rtl433.json
+  //var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
+  var proc = childProcess.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si'], {
     shell: true
-  });
+    });
   readline.createInterface({
     input: proc.stdout,
     terminal: false
@@ -212,7 +210,7 @@ Rtl433Accessory.prototype = {
 	  // {"time" : "2022-03-17 21:58:46.319049", "protocol" : 68, "model" : "Kerui-Security", "id" : 840811, "cmd" : 10, "motion" : 1, "state" : "motion" }
           // debug("update motion this--->",this);
 
-          var value = (data.motion === "true") || (data.motion === 1) ;
+		  var value = (data.motion === "true" || data.motion === 1 ? true : false ) ;
           if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
             this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
               .updateValue(moment().unix() - this.loggingService.getInitialTime());
@@ -249,12 +247,11 @@ Rtl433Accessory.prototype = {
           // console.log("update door this--->",this);
 
           this.sensorService
-              .setCharacteristic(Characteristic.ContactSensorState, data.opened );
+			.setCharacteristic(Characteristic.ContactSensorState, ( data.opened === 1 ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : Characteristic.ContactSensorState.CONTACT_DETECTED ));
 
           if (data.battery !== undefined || data.battery_ok != undefined) {
-            var batteryOk = data.battery === "OK" || data.battery_ok === 1
             this.sensorService
-              .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+			  .setCharacteristic(Characteristic.StatusLowBattery, (data.battery === "OK" || data.battery_ok === 1 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW));
           }
            break;
 
@@ -354,6 +351,9 @@ Rtl433Accessory.prototype = {
 
        this.sensorService = new Service.ContactSensor(this.name);
        this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
+
+       this.timeoutCharacteristic = Characteristic.ContactSensorState;
+       this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
        this.sensorService.log = this.log;
        informationService
