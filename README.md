@@ -14,7 +14,7 @@ Contributor added sensors:
 * [Mighty Mule Driveway alarm](https://www.amazon.com/Mighty-Mule-Wireless-Driveway-FM231/dp/B003765W0W) see [instructions here](MIGHTY-MULE-DRIVEWAY-ALARM-INSTRUCTIONS.md)
 
 ## Features
-* Supported sensors include Motion, Temperature and Humidity
+* Supported sensors include Motion, Contact, Temperature and Humidity
 * Also shows "not responding" if the sensor stops sending data
 * For temperature and humidity sensors, has ability to create alarms if the current value exceeds a alarm value
 
@@ -32,7 +32,7 @@ I have tested this on both a Mac and a RPI3
 * `platform`: "rtl_433"
 * `name`: "Front Porch" - Name of device for display in the Home App
 * `id`: id number of device - To find the ID of your device, run homebridge in DEBUG mode, and it will log the message received from all rtl_433 devices.  See below for examples
-* `type`: Type of sensor device.  Supported sensors are `motion`, `temperature`, `humidity`
+* `type`: Type of sensor device.  Supported sensors are `motion`, `temperature`, `humidity`, and `contact`
 * `alarm`: Optional, Create a fake contact sensor called name + Alarm.  Value is temperature in Celsius that if exceeded will trigger contact sensor.
 * `humidity`: Optional, For devices of type `temperature` that emits also humidity set to `true` and humidity will shows in HomeKit/Eve app in the sensor.
 
