@@ -374,8 +374,10 @@ Rtl433Accessory.prototype = {
 
 function deviceTimeout() {
   this.log("Timeout", this.name);
-  this.sensorService
-    .getCharacteristic(this.timeoutCharacteristic).updateValue(new Error("No response"));
+
+  if (this.sensorService !== undefined && this.timeoutCharacteristic !== undefined )
+    this.sensorService
+      .getCharacteristic(this.timeoutCharacteristic).updateValue(new Error("No response"));
 }
 
 function roundInt(string) {
@@ -422,3 +424,4 @@ function duplicateMessage(last, current) {
   }
   return false;
 }
+
