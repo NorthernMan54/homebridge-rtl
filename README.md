@@ -57,7 +57,7 @@ Example configuration:
       "name": "Front Door Sensor",
       "type": "contact"
       }
-	  ]
+      ]
   }]
 ```
 
