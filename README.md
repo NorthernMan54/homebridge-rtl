@@ -57,7 +57,7 @@ Example configuration:
       "name": "Front Door Sensor",
       "type": "contact"
       }
-	  ]
+    ]
   }]
 ```
 
@@ -106,6 +106,7 @@ Message {"time" : "2022-03-23 21:28:05.748872", "protocol" : 38, "model" : "Gene
 id is 92 the channel 1 for tiny AVIDSEN Weather station
 ```
 
+```
 Message {"time" : "2022-03-29 21:32:16.707696", "protocol" : 19, "model" : "Nexus-TH", "id" : 36, "channel" : 1, "battery_ok" : 1, "temperature_C" : 11.800, "humidity" : 77 }
 Message {"time" : "2022-03-29 21:32:35.938421", "protocol" : 19, "model" : "Nexus-TH", "id" : 31, "channel" : 2, "battery_ok" : 1, "temperature_C" : 12.800, "humidity" : 66 }
 Message {"time" : "2022-03-29 21:32:47.165018", "protocol" : 19, "model" : "Nexus-TH", "id" : 198, "channel" : 3, "battery_ok" : 1, "temperature_C" : 20.900, "humidity" : 45 }
