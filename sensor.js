@@ -249,6 +249,9 @@ Rtl433Accessory.prototype = {
           this.sensorService
 			.setCharacteristic(Characteristic.ContactSensorState, ( data.opened === 1 ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : Characteristic.ContactSensorState.CONTACT_DETECTED ));
 
+      //this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000);
+            clearTimeout(this.timeout);
+
           if (data.battery !== undefined || data.battery_ok != undefined) {
             this.sensorService
 			  .setCharacteristic(Characteristic.StatusLowBattery, (data.battery === "OK" || data.battery_ok === 1 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW));
@@ -352,8 +355,8 @@ Rtl433Accessory.prototype = {
        this.sensorService = new Service.ContactSensor(this.name);
        this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
 
-       this.timeoutCharacteristic = Characteristic.ContactSensorState;
-       this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
+       //this.timeoutCharacteristic = Characteristic.ContactSensorState;
+       //this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
        this.sensorService.log = this.log;
        informationService
