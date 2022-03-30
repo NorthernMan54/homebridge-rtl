@@ -46,7 +46,18 @@ Example configuration:
       "id": "1e3e8",
       "name": "Front Porch",
       "type": "motion"
-      }]
+      },
+      {
+      "id": "92",
+      "name": "Outside temperature",
+      "type": "temperature"
+      },
+      {
+      "id": "834551",
+      "name": "Front Door Sensor",
+      "type": "contact"
+      }
+    ]
   }]
 ```
 
@@ -58,6 +69,10 @@ Example configuration:
 Message {"time" : "2019-04-03 09:43:05", "model" : "Skylink HA-434TL motion sensor", "motion" : "false", "id" : "1e3e8", "raw" : "5e3e8"}
 
 id is 1e3e8
+
+Message {"time" : "2022-03-23 20:11:54.643434", "protocol" : 68, "model" : "Kerui-Security", "id" : 840811, "cmd" : 10, "motion" : 1, "state" : "motion" }
+
+id is 840811
 ```
 
 * Temperature sensor log entries
@@ -83,6 +98,29 @@ id is the channel 1
 Message {"time" : "2020-03-14 14:40:41", "model" : "Acurite tower sensor", "id" : 15424, "sensor_id" : 15424, "channel" : "A", "temperature_C" : 3.600, "humidity" : 60, "battery_low" : 0}
 
 id is 15424
+```
+
+```
+Message {"time" : "2022-03-23 21:28:05.748872", "protocol" : 38, "model" : "Generic-Temperature", "id" : 92, "battery_ok" : 1, "temperature_C" : 6.100 }
+
+id is 92 the channel 1 for tiny AVIDSEN Weather station
+```
+
+```
+Message {"time" : "2022-03-29 21:32:16.707696", "protocol" : 19, "model" : "Nexus-TH", "id" : 36, "channel" : 1, "battery_ok" : 1, "temperature_C" : 11.800, "humidity" : 77 }
+Message {"time" : "2022-03-29 21:32:35.938421", "protocol" : 19, "model" : "Nexus-TH", "id" : 31, "channel" : 2, "battery_ok" : 1, "temperature_C" : 12.800, "humidity" : 66 }
+Message {"time" : "2022-03-29 21:32:47.165018", "protocol" : 19, "model" : "Nexus-TH", "id" : 198, "channel" : 3, "battery_ok" : 1, "temperature_C" : 20.900, "humidity" : 45 }
+
+id are 36, 31 and 198 (Bresser Temeo Hygro Quadro)
+```
+
+* Contact Sensor log entries (Door or Window Open/Close)
+
+```
+Message {"time" : "2022-03-23 20:12:15.579712", "protocol" : 68, "model" : "Kerui-Security", "id" : 843552, "cmd" : 14, "opened" : 1, "state" : "open" }
+Message {"time" : "2022-03-23 20:12:18.993887", "protocol" : 68, "model" : "Kerui-Security", "id" : 843552, "cmd" : 7, "opened" : 0, "state" : "close" }
+
+id is 843552
 ```
 
 ## Credits
