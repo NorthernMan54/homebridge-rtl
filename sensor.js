@@ -26,8 +26,11 @@ function rtl433Plugin(log, config, api) {
   this.log = log;
   this.refresh = config['refresh'] || 60; // Update every minute
   this.options = config.options || {};
-  this.storage = config['storage'] || "fs";
-
+    this.storage = config['storage'] || "fs";
+    this.storagePath = config['storagePath'] || "/tmp/rtl433.json";
+    this.rtl433Path = config['rtl433Path'] || "/usr/local/bin/";
+    this.rtl433Bin = config['rtl433Bin'] || "rtl_433";
+    this.killCommand = config['killCommand'] || ("pkill " + this.rtl433Bin + ';');// for linux/mac  windows: taskkill /im "rtl_433_64bit_static.exe"
   this.spreadsheetId = config['spreadsheetId'];
   this.devices = config['devices'];
 
@@ -56,8 +59,8 @@ function rtl433Server() {
   var previousMessage;
   this.log("Spawning rtl_433");
   // if you start rtl_433 outside homebride to get log: rtl_433 -v -F json -C si -M protocol > /tmp/rtl433.json
-  //var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
-  var proc = childProcess.spawn('pkill rtl_433;/usr/local/bin/rtl_433', ['-q', '-F', 'json', '-C', 'si'], {
+    //var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
+    var proc = childProcess.spawn(this.killCommand + ' ' + this.rtl433Path + this.rtl433Bin, [' - q', ' - F', 'json', ' - C', 'si'], {
     shell: true
     });
   readline.createInterface({
