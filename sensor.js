@@ -19,7 +19,7 @@ module.exports = (homebridge) => {
   CustomCharacteristic = require('./lib/CustomCharacteristic.js')(homebridge);
   FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
-  homebridge.registerPlatform('homebridge-rtl-jdr', 'rtl_433', rtl433Plugin);
+  homebridge.registerPlatform('homebridge-rtl', 'rtl_433', rtl433Plugin);
 };
 
 function rtl433Plugin(log, config, api) {

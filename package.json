@@ -1,6 +1,6 @@
 {
-  "name": "homebridge-rtl-jdr",
-  "version": "0.0.33.01",
+  "name": "homebridge-rtl",
+  "version": "0.0.3-3.1",
   "description": "RTL_433 based sensor for Homebridge",
   "main": "sensor.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/judahr/homebridge-rtl.git"
+    "url": "git://github.com/northernman54/homebridge-rtl.git"
   },
   "keywords": [
     "homebridge-plugin",
