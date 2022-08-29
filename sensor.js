@@ -19,7 +19,7 @@ module.exports = (homebridge) => {
   CustomCharacteristic = require('./lib/CustomCharacteristic.js')(homebridge);
   FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
-  homebridge.registerPlatform('homebridge-rtl', 'rtl_433', rtl433Plugin);
+  homebridge.registerPlatform('homebridge-rtl-jdr', 'rtl_433', rtl433Plugin);
 };
 
 function rtl433Plugin(log, config, api) {
@@ -27,7 +27,7 @@ function rtl433Plugin(log, config, api) {
   this.refresh = config['refresh'] || 60; // Update every minute
   this.options = config.options || {};
     this.storage = config['storage'] || "fs";
-    this.storagePath = config['storagePath'] || "/tmp/rtl433.json";
+    //8/28/2022 JDR added this for Windows.
     this.rtl433Path = config['rtl433Path'] || "/usr/local/bin/";
     this.rtl433Bin = config['rtl433Bin'] || "rtl_433";
     this.killCommand = config['killCommand'] || ("pkill " + this.rtl433Bin + ';');// for linux/mac  windows: taskkill /im "rtl_433_64bit_static.exe"
@@ -57,16 +57,18 @@ function rtl433Server() {
   var childProcess = require('child_process');
   var readline = require('readline');
   var previousMessage;
-  this.log("Spawning rtl_433");
+    this.log("Spawning rtl_433 " + this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin);
   // if you start rtl_433 outside homebride to get log: rtl_433 -v -F json -C si -M protocol > /tmp/rtl433.json
     //var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
-    var proc = childProcess.spawn(this.killCommand + ' ' + this.rtl433Path + this.rtl433Bin, [' - q', ' - F', 'json', ' - C', 'si'], {
+    ////8/28/2022 JDR added this for Windows. fixed command line arguments.  They weren't working for Windows, but should still work for others.
+    var proc = childProcess.spawn(this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin, ['-d 0', '-F json', '-C si'], {
     shell: true
     });
   readline.createInterface({
     input: proc.stdout,
     terminal: false
-  }).on('line', function(message) {
+  }).on('line', function (message) {
+      this.log("Message", message.toString());
     debug("Message", message.toString());
 
     if (message.toString().startsWith('{')) {
