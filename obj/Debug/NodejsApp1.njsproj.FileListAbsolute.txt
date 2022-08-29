@@ -1,3 +1,0 @@
-C:\Users\judah\source\repos\homebridge-rtl\obj\Debug\NodejsApp1.njsproj.AssemblyReference.cache
-C:\Users\judah\source\repos\homebridge-rtl\obj\Debug\NodejsApp1.njsproj.CoreCompileInputs.cache
-C:\Users\judah\source\repos\homebridge-rtl\bin\Microsoft.NodejsTools.WebRole.dll
