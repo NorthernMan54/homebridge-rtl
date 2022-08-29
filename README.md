@@ -30,6 +30,9 @@ I have tested this on both a Mac and a RPI3
 
 ## Configuration
 * `platform`: "rtl_433"
+* `rtl433Path`: by default this is "/usr/local/bin/"; for windows, the directory rtl433 exe is located.  End this with a \.
+* `rtl433Bin`: by default this is "rtl_433";  for windows, this is the exe.
+* `killCommand`: by default this is "pkill"; for windows, this is taskkill /IM, however, the service may not have sufficient privileges to do this. " " for no command.
 * `name`: "Front Porch" - Name of device for display in the Home App
 * `id`: id number of device - To find the ID of your device, run homebridge in DEBUG mode, and it will log the message received from all rtl_433 devices.  See below for examples
 * `type`: Type of sensor device.  Supported sensors are `motion`, `temperature`, `humidity`, and `contact`
@@ -41,6 +44,34 @@ Example configuration:
 ```
 "platforms": [{
     "platform": "rtl_433",
+    "devices": [
+      {
+      "id": "1e3e8",
+      "name": "Front Porch",
+      "type": "motion"
+      },
+      {
+      "id": "92",
+      "name": "Outside temperature",
+      "type": "temperature"
+      },
+      {
+      "id": "834551",
+      "name": "Front Door Sensor",
+      "type": "contact"
+      }
+    ]
+  }]
+```
+
+Example windows configuration:
+
+```
+"platforms": [{
+    "platform": "rtl_433",
+	"rtl433Path": "c:\\temp\\",
+	"rtp433Bin": "rtl_433_64bit_static.exe",
+	"killCommand": " ",
     "devices": [
       {
       "id": "1e3e8",
