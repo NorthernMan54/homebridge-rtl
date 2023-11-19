@@ -26,11 +26,11 @@ function rtl433Plugin(log, config, api) {
   this.log = log;
   this.refresh = config['refresh'] || 60; // Update every minute
   this.options = config.options || {};
-    this.storage = config['storage'] || "fs";
-    //8/28/2022 JDR added this for Windows.
-    this.rtl433Path = config['rtl433Path'] || "/usr/local/bin/";
-    this.rtl433Bin = config['rtl433Bin'] || "rtl_433";
-    this.killCommand = config['killCommand'] || ("pkill " + this.rtl433Bin + ';');// for linux/mac  windows: taskkill /im "rtl_433_64bit_static.exe"
+  this.storage = config['storage'] || "fs";
+  //8/28/2022 JDR added this for Windows.
+  this.rtl433Path = config['rtl433Path'] || "/usr/local/bin/";
+  this.rtl433Bin = config['rtl433Bin'] || "rtl_433";
+  this.killCommand = config['killCommand'] || ("pkill " + this.rtl433Bin);// for linux/mac  windows: taskkill /im "rtl_433_64bit_static.exe"
   this.spreadsheetId = config['spreadsheetId'];
   this.devices = config['devices'];
 
@@ -41,7 +41,7 @@ function rtl433Plugin(log, config, api) {
 }
 
 rtl433Plugin.prototype = {
-  accessories: function(callback) {
+  accessories: function (callback) {
     for (var i in this.devices) {
       this.log("Adding device", i, this.devices[i].name);
       myAccessories.push(new Rtl433Accessory(this.devices[i], this.log, i));
@@ -57,18 +57,18 @@ function rtl433Server() {
   var childProcess = require('child_process');
   var readline = require('readline');
   var previousMessage;
-    this.log("Spawning rtl_433 " + this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin);
+  this.log("Spawning rtl_433 " + this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin);
   // if you start rtl_433 outside homebride to get log: rtl_433 -v -F json -C si -M protocol > /tmp/rtl433.json
-    //var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
-    ////8/28/2022 JDR added this for Windows. fixed command line arguments.  They weren't working for Windows, but should still work for others.
-    var proc = childProcess.spawn(this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin, ['-d 0', '-F json', '-C si'], {
+  //var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
+  ////8/28/2022 JDR added this for Windows. fixed command line arguments.  They weren't working for Windows, but should still work for others.
+  var proc = childProcess.spawn(this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin, ['-d 0', '-F json', '-C si'], {
     shell: true
-    });
+  });
   readline.createInterface({
     input: proc.stdout,
     terminal: false
   }).on('line', function (message) {
-      this.log("Message", message.toString());
+    this.log("Message", message.toString());
     debug("Message", message.toString());
 
     if (message.toString().startsWith('{')) {
@@ -101,17 +101,17 @@ function rtl433Server() {
       }
     }
   }.bind(this));
-  proc.on('close', function(code) {
+  proc.on('close', function (code) {
     this.log.error('child close code (spawn)', code);
     setTimeout(rtl433Server.bind(this), 10 * 1000);
   }.bind(this));
-  proc.on('disconnect', function(code) {
+  proc.on('disconnect', function (code) {
     this.log.error('child disconnect code (spawn)', code);
   }.bind(this));
-  proc.on('error', function(code) {
+  proc.on('error', function (code) {
     this.log.error('child error code (spawn)', code);
   }.bind(this));
-  proc.on('exit', function(code) {
+  proc.on('exit', function (code) {
     this.log.error('child exit code (spawn)', code);
   }.bind(this));
 }
@@ -127,7 +127,7 @@ function Rtl433Accessory(device, log, unit) {
 }
 
 Rtl433Accessory.prototype = {
-  updateStatus: function(data) {
+  updateStatus: function (data) {
     try {
       this.log("Updating", this.name);
       this.lastUpdated = Date.now();
@@ -212,10 +212,10 @@ Rtl433Accessory.prototype = {
           break;
         case "motion":
           // {"time" : "2018-09-30 19:20:26", "model" : "Skylink HA-434TL motion sensor", "motion" : "true", "id" : "1e3e8", "raw" : "be3e8"}
-	  // {"time" : "2022-03-17 21:58:46.319049", "protocol" : 68, "model" : "Kerui-Security", "id" : 840811, "cmd" : 10, "motion" : 1, "state" : "motion" }
+          // {"time" : "2022-03-17 21:58:46.319049", "protocol" : 68, "model" : "Kerui-Security", "id" : 840811, "cmd" : 10, "motion" : 1, "state" : "motion" }
           // debug("update motion this--->",this);
 
-		  var value = (data.motion === "true" || data.motion === 1 ? true : false ) ;
+          var value = (data.motion === "true" || data.motion === 1 ? true : false);
           if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
             this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
               .updateValue(moment().unix() - this.loggingService.getInitialTime());
@@ -229,7 +229,7 @@ Rtl433Accessory.prototype = {
 
           if (value) {
             clearTimeout(this.motionTimeout);
-            this.motionTimeout = setTimeout(function() {
+            this.motionTimeout = setTimeout(function () {
               var value = false;
               if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
                 this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
@@ -246,22 +246,22 @@ Rtl433Accessory.prototype = {
 
           break;
         case "contact":
-	  // {"time" : "2022-03-17 23:04:08.430623", "protocol" : 68, "model" : "Kerui-Security", "id" : 297536, "cmd" : 14, "opened" : 1, "state" : "open" }
-	  // {"time" : "2022-03-17 23:04:19.447761", "protocol" : 68, "model" : "Kerui-Security", "id" : 297536, "cmd" : 7, "opened" : 0, "state" : "close" }
+          // {"time" : "2022-03-17 23:04:08.430623", "protocol" : 68, "model" : "Kerui-Security", "id" : 297536, "cmd" : 14, "opened" : 1, "state" : "open" }
+          // {"time" : "2022-03-17 23:04:19.447761", "protocol" : 68, "model" : "Kerui-Security", "id" : 297536, "cmd" : 7, "opened" : 0, "state" : "close" }
           // debug("update door this--->",this);
           // console.log("update door this--->",this);
 
           this.sensorService
-			.setCharacteristic(Characteristic.ContactSensorState, ( data.opened === 1 ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : Characteristic.ContactSensorState.CONTACT_DETECTED ));
+            .setCharacteristic(Characteristic.ContactSensorState, (data.opened === 1 ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : Characteristic.ContactSensorState.CONTACT_DETECTED));
 
-      //this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000);
-            clearTimeout(this.timeout);
+          //this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000);
+          clearTimeout(this.timeout);
 
           if (data.battery !== undefined || data.battery_ok != undefined) {
             this.sensorService
-			  .setCharacteristic(Characteristic.StatusLowBattery, (data.battery === "OK" || data.battery_ok === 1 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW));
+              .setCharacteristic(Characteristic.StatusLowBattery, (data.battery === "OK" || data.battery_ok === 1 ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW));
           }
-           break;
+          break;
 
         default:
           this.log.error("No events defined for sensor type %s", this.type);
@@ -271,7 +271,7 @@ Rtl433Accessory.prototype = {
     }
   },
 
-  getServices: function() {
+  getServices: function () {
     this.log("getServices", this.name);
     // Information Service
     var informationService = new Service.AccessoryInformation();
@@ -356,17 +356,17 @@ Rtl433Accessory.prototype = {
           .setCharacteristic(Characteristic.Model, "Motion Sensor");
         break;
       case "contact":
-       // debug("get door this--->",this);
-       // console.log("get door this--->",this);
+        // debug("get door this--->",this);
+        // console.log("get door this--->",this);
 
-       this.sensorService = new Service.ContactSensor(this.name);
-       this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
+        this.sensorService = new Service.ContactSensor(this.name);
+        this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
 
-       //this.timeoutCharacteristic = Characteristic.ContactSensorState;
-       //this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
+        //this.timeoutCharacteristic = Characteristic.ContactSensorState;
+        //this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
 
-       this.sensorService.log = this.log;
-       informationService
+        this.sensorService.log = this.log;
+        informationService
           .setCharacteristic(Characteristic.Model, "Contact Sensor");
         break;
 
@@ -385,7 +385,7 @@ Rtl433Accessory.prototype = {
 function deviceTimeout() {
   this.log("Timeout", this.name);
 
-  if (this.sensorService !== undefined && this.timeoutCharacteristic !== undefined )
+  if (this.sensorService !== undefined && this.timeoutCharacteristic !== undefined)
     this.sensorService
       .getCharacteristic(this.timeoutCharacteristic).updateValue(new Error("No response"));
 }
