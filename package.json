@@ -1,10 +1,11 @@
 {
   "name": "homebridge-rtl",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "RTL_433 based sensor for Homebridge",
   "main": "sensor.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "nodemon"
   },
   "repository": {
     "type": "git",
@@ -25,18 +26,33 @@
     "url": "https://github.com/northernman54/homebridge-rtl/issues"
   },
   "engines": {
-    "node": ">=8.0.0",
-    "homebridge": ">=0.2.0"
+    "homebridge": "^1.6.0",
+    "node": "^18.20.4 || ^20.15.1 || ^22.0.0"
   },
   "homepage": "https://github.com/northernman54/homebridge-rtl#readme",
   "dependencies": {
-    "debug": "^2.2.0",
-    "fakegato-history": "^0.5.6",
+    "debug": "^4.3.7",
+    "fakegato-history": "^0.6.5",
     "lodash": "^4.17.20",
     "mcuiot-logger": "0.0.12",
-    "moment": "^2.18.1"
+    "moment": "^2.18.1",
+    "nodemon": "^3.1.7"
+  },
+  "devDependencies": {
   },
   "directories": {
     "lib": "lib"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src"
+    ],
+    "ext": "ts",
+    "ignore": [],
+    "exec": "~/npm/bin/homebridge -U ./test/hbConfig -T -D -P .",
+    "signal": "SIGTERM",
+    "env": {
+      "NODE_OPTIONS": "--trace-warnings"
+    }
   }
 }
