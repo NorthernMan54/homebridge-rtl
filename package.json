@@ -36,9 +36,8 @@
     "lodash": "^4.17.20",
     "mcuiot-logger": "0.0.12",
     "moment": "^2.18.1",
-    "nodemon": "^3.1.7"
-  },
-  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "semver": "^7.6.3"
   },
   "directories": {
     "lib": "lib"
