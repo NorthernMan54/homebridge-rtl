@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/northernman54/homebridge-rtl"
+    "url": "git+https://github.com/NorthernMan54/homebridge-rtl"
   },
   "keywords": [
     "homebridge-plugin",
