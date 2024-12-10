@@ -6,9 +6,10 @@ const moment = require('moment');
 var os = require("os");
 var _ = require('lodash');
 var hostname = os.hostname();
+var homebridgeLib = require('homebridge-lib');
 
 let Service, Characteristic;
-var CustomCharacteristic;
+var CustomCharacteristics;
 var FakeGatoHistoryService;
 
 var myAccessories = [];
@@ -16,7 +17,7 @@ var myAccessories = [];
 module.exports = (homebridge) => {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
-  CustomCharacteristic = require('./lib/CustomCharacteristic.js')(homebridge);
+  CustomCharacteristics = new homebridgeLib.EveHomeKitTypes(homebridge).Characteristics;
   FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
   homebridge.registerPlatform('homebridge-rtl', 'rtl_433', rtl433Plugin);
@@ -133,10 +134,11 @@ Rtl433Accessory.prototype = {
       this.lastUpdated = Date.now();
       clearTimeout(this.timeout);
       this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000);
+      var entry, batteryOk;
       switch (this.type) {
         case "temperature":
           var humidity;
-          var entry = {
+          entry = {
             time: moment().unix(),
             temp: roundInt(data.temperature_C)
           }
@@ -161,7 +163,7 @@ Rtl433Accessory.prototype = {
           }
 
           if (data.battery !== undefined || data.battery_ok != undefined) {
-            var batteryOk = data.battery === "OK" || data.battery_ok === 1
+            batteryOk = data.battery === "OK" || data.battery_ok === 1
             this.sensorService
               .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
           }
@@ -177,7 +179,7 @@ Rtl433Accessory.prototype = {
           }
           break;
         case "humidity":
-          var entry = {
+          entry = {
             time: moment().unix(),
             humidity: roundInt(data.humidity)
           }
@@ -195,7 +197,7 @@ Rtl433Accessory.prototype = {
             .setCharacteristic(Characteristic.CurrentRelativeHumidity, roundInt(data.humidity))
 
           if (data.battery !== undefined || data.battery_ok != undefined) {
-            var batteryOk = data.battery === "OK" || data.battery_ok === 1
+            batteryOk = data.battery === "OK" || data.battery_ok === 1
             this.sensorService
               .setCharacteristic(Characteristic.StatusLowBattery, batteryOk ? Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL : Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
           }
@@ -217,7 +219,7 @@ Rtl433Accessory.prototype = {
 
           var value = (data.motion === "true" || data.motion === 1 ? true : false);
           if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
-            this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
+            this.sensorService.getCharacteristic(CustomCharacteristics.LastActivation)
               .updateValue(moment().unix() - this.loggingService.getInitialTime());
           }
           this.sensorService.getCharacteristic(Characteristic.MotionDetected)
@@ -232,7 +234,7 @@ Rtl433Accessory.prototype = {
             this.motionTimeout = setTimeout(function () {
               var value = false;
               if (this.sensorService.getCharacteristic(Characteristic.MotionDetected).value !== value) {
-                this.sensorService.getCharacteristic(CustomCharacteristic.LastActivation)
+                this.sensorService.getCharacteristic(CustomCharacteristics.LastActivation)
                   .updateValue(moment().unix() - this.loggingService.getInitialTime());
               }
               this.sensorService.getCharacteristic(Characteristic.MotionDetected)
@@ -279,7 +281,7 @@ Rtl433Accessory.prototype = {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, "homebridge-rtl_433")
       .setCharacteristic(Characteristic.SerialNumber, hostname + "-" + this.name)
-      .setCharacteristic(Characteristic.FirmwareRevision, require('./package.json').version);
+      .setCharacteristic(Characteristic.FirmwareRevision, require('../package.json').version);
     // Thermostat Service
 
     switch (this.type) {
@@ -342,7 +344,7 @@ Rtl433Accessory.prototype = {
       case "motion":
         this.sensorService = new Service.MotionSensor(this.name);
 
-        this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
+        this.sensorService.addCharacteristic(CustomCharacteristics.LastActivation);
 
         this.timeoutCharacteristic = Characteristic.MotionDetected;
         this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes
@@ -360,7 +362,7 @@ Rtl433Accessory.prototype = {
         // console.log("get door this--->",this);
 
         this.sensorService = new Service.ContactSensor(this.name);
-        this.sensorService.addCharacteristic(CustomCharacteristic.LastActivation);
+        this.sensorService.addCharacteristic(CustomCharacteristics.LastActivation);
 
         //this.timeoutCharacteristic = Characteristic.ContactSensorState;
         //this.timeout = setTimeout(deviceTimeout.bind(this), this.deviceTimeout * 60 * 1000); // 5 minutes

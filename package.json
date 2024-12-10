@@ -2,10 +2,13 @@
   "name": "homebridge-rtl",
   "version": "0.1.0",
   "description": "RTL_433 based sensor for Homebridge",
-  "main": "sensor.js",
+  "main": "src/sensor.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon"
+    "lint": "eslint --max-warnings=0 .",
+    "lint:fix": "eslint --fix --max-warnings=0 .",
+    "watch": "nodemon",
+    "test": "jest --detectOpenHandles",
+    "test-coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -26,7 +29,7 @@
     "url": "https://github.com/northernman54/homebridge-rtl/issues"
   },
   "engines": {
-    "homebridge": "^1.6.0",
+    "homebridge": "^1.6.0 || ^2.0.0-beta.0",
     "node": "^18.20.4 || ^20.15.1 || ^22.0.0"
   },
   "homepage": "https://github.com/northernman54/homebridge-rtl#readme",
@@ -37,16 +40,23 @@
     "mcuiot-logger": "0.0.12",
     "moment": "^2.18.1",
     "nodemon": "^3.1.7",
-    "semver": "^7.6.3"
+    "semver": "^7.6.3",
+    "homebridge-lib": "^6.0.1"
   },
-  "directories": {
-    "lib": "lib"
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-format": "^0.1.2",
+    "eslint-plugin-jest": "^28.8.3",
+    "globals": "^15.12.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.7"
   },
   "nodemonConfig": {
     "watch": [
       "src"
     ],
-    "ext": "ts",
+    "ext": "js",
     "ignore": [],
     "exec": "~/npm/bin/homebridge -U ./test/hbConfig -T -D -P .",
     "signal": "SIGTERM",
