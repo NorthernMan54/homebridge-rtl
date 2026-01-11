@@ -81,6 +81,8 @@ function rtl433Server() {
           devices = getDevices.call(this, data.id);
         } else if (data.channel) {
           devices = getDevices.call(this, data.channel);
+        } else if (data.model) {
+          devices = getDevices.call(this, data.model);
         } else {
           this.log.error("FYI: RTL Message missing device or channel identifier.");
           this.log("Message", this.message.toString());
