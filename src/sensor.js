@@ -45,7 +45,7 @@ rtl433Plugin.prototype = {
   accessories: function (callback) {
     for (var i in this.devices) {
       this.log("Adding device", i, this.devices[i].name);
-      myAccessories.push(new Rtl433Accessory(this.devices[i], this.log, i));
+      myAccessories.push(new Rtl433Accessory(this.devices[i], this.log, i, this.storage, this.refresh));
     }
     callback(myAccessories);
     // console.log("Pre-This", this);
@@ -117,7 +117,7 @@ function rtl433Server() {
   }.bind(this));
 }
 
-function Rtl433Accessory(device, log, unit) {
+function Rtl433Accessory(device, log, unit, storage, refresh) {
   this.id = device.id;
   this.type = device.type;
   this.log = log;
@@ -125,6 +125,8 @@ function Rtl433Accessory(device, log, unit) {
   this.alarm = device['alarm']
   this.deviceTimeout = device['timeout'] || 120; // Mark as unavailable after 2 hours
   this.humidity = device['humidity'] || false; // Add humidity data to temerature sensor
+  this.storage = storage;
+  this.refresh = refresh;
 }
 
 Rtl433Accessory.prototype = {
@@ -377,9 +379,9 @@ Rtl433Accessory.prototype = {
     }
 
     if (this.alarm !== undefined) {
-      return [informationService, this.sensorService, this.alarmService, this.loggingService];
+      return [informationService, this.sensorService, this.alarmService, this.loggingService].filter(Boolean);
     } else {
-      return [informationService, this.sensorService, this.loggingService];
+      return [informationService, this.sensorService, this.loggingService].filter(Boolean);
     }
   }
 };
@@ -423,7 +425,7 @@ function seconds(dateTime) {
 function duplicateMessage(last, current) {
   if (last) {
     // debug("Last %s, Current %s", JSON.stringify(last), JSON.stringify(current));
-    if ((seconds(current.time) - seconds(last.time)) < 2) {
+    if (Math.abs(seconds(current.time) - seconds(last.time)) < 2) {
       var tCurrent = Object.assign({}, current);
       var tLast = Object.assign({}, last);
       delete tCurrent.time;
