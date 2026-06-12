@@ -6,7 +6,7 @@ const moment = require('moment');
 var os = require("os");
 var _ = require('lodash');
 var hostname = os.hostname();
-var homebridgeLib = require('homebridge-lib');
+//var homebridgeLib = require('homebridge-lib');
 
 let Service, Characteristic;
 var CustomCharacteristics;
@@ -17,7 +17,19 @@ var myAccessories = [];
 module.exports = (homebridge) => {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
-  CustomCharacteristics = new homebridgeLib.EveHomeKitTypes(homebridge).Characteristics;
+  //CustomCharacteristics = new homebridgeLib.EveHomeKitTypes(homebridge).Characteristics;  
+  var LastActivation = function() {
+    Characteristic.call(this, 'Last Activation', 'E863F11A-079E-48FF-8F27-9C2605A29F52');
+    this.setProps({
+      format: Characteristic.Formats.UINT32,
+      unit: Characteristic.Units.SECONDS,
+      perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+    });
+    this.value = this.getDefaultValue();
+  };
+  require('util').inherits(LastActivation, Characteristic);
+  LastActivation.UUID = 'E863F11A-079E-48FF-8F27-9C2605A29F52';
+  CustomCharacteristics = { LastActivation: LastActivation };
   FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
   homebridge.registerPlatform('homebridge-rtl', 'rtl_433', rtl433Plugin);
@@ -69,7 +81,7 @@ function rtl433Server() {
     input: proc.stdout,
     terminal: false
   }).on('line', function (message) {
-    this.log("Message", message.toString());
+    //this.log("Message", message.toString());
     debug("Message", message.toString());
 
     if (message.toString().startsWith('{')) {
@@ -405,8 +417,8 @@ function getDevices(unit) {
     }
   }
   if (devices.length === 0) {
-    this.log.error("FYI: Message from unknown device ID", unit);
-    this.log("Message", this.message.toString());
+    debug("FYI: Message from unknown device ID", unit);
+    debug("Message", this.message.toString());
   }
   return devices;
 }
