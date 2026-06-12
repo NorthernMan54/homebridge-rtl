@@ -125,8 +125,8 @@ function Rtl433Accessory(device, log, unit, storage, refresh) {
   this.alarm = device['alarm']
   this.deviceTimeout = device['timeout'] || 120; // Mark as unavailable after 2 hours
   this.humidity = device['humidity'] || false; // Add humidity data to temerature sensor
-  this.storage = storage;
-  this.refresh = refresh;
+  this.storage = storage || 'fs';
+  this.refresh = refresh || 60;
 }
 
 Rtl433Accessory.prototype = {
