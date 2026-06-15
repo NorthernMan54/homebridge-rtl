@@ -23,24 +23,25 @@
         },
         {
             "platform": "rtl_433",
+            "rtl433Path": "/opt/homebrew/bin/",
             "devices": [
-              {
-              "id": "1e3e8",
-              "name": "Front Porch",
-              "type": "motion"
-              },
-              {
-              "id": "92",
-              "name": "Outside temperature",
-              "type": "temperature"
-              },
-              {
-              "id": "834551",
-              "name": "Front Door Sensor",
-              "type": "contact"
-              }
+                {
+                    "id": "1e3e8",
+                    "name": "Front Porch",
+                    "type": "motion"
+                },
+                {
+                    "id": "92",
+                    "name": "Outside temperature",
+                    "type": "temperature"
+                },
+                {
+                    "id": "834551",
+                    "name": "Front Door Sensor",
+                    "type": "contact"
+                }
             ]
-          }
+        }
     ],
     "accessories": []
 }
