@@ -68,7 +68,7 @@ jobs:
 
     - name: Create Table of Contents
       run: |
-        npm run-script document
+        npm run-script document --if-present
         rm gh-md-toc
 
     - name: Commit files
