@@ -45,7 +45,7 @@ rtl433Plugin.prototype = {
   accessories: function (callback) {
     for (var i in this.devices) {
       this.log("Adding device", i, this.devices[i].name);
-      myAccessories.push(new Rtl433Accessory(this.devices[i], this.log, i));
+      myAccessories.push(new Rtl433Accessory(this.devices[i], this.log, i, this.storage, this.refresh));
     }
     callback(myAccessories);
     // console.log("Pre-This", this);
@@ -62,7 +62,7 @@ function rtl433Server() {
   // if you start rtl_433 outside homebride to get log: rtl_433 -v -F json -C si -M protocol > /tmp/rtl433.json
   //var proc = childProcess.spawn('/usr/bin/truncate -s 0 /tmp/rtl433.json;/usr/bin/tail', ['-F','/tmp/rtl433.json'], {
   ////8/28/2022 JDR added this for Windows. fixed command line arguments.  They weren't working for Windows, but should still work for others.
-  var proc = childProcess.spawn(this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin, ['-d 0', '-F json', '-C si'], {
+  var proc = childProcess.spawn(this.killCommand + '; ' + this.rtl433Path + this.rtl433Bin + ' -d 0 -F json -C si', [], {
     shell: true
   });
   readline.createInterface({
@@ -117,7 +117,7 @@ function rtl433Server() {
   }.bind(this));
 }
 
-function Rtl433Accessory(device, log, unit) {
+function Rtl433Accessory(device, log, unit, storage, refresh) {
   this.id = device.id;
   this.type = device.type;
   this.log = log;
@@ -125,6 +125,8 @@ function Rtl433Accessory(device, log, unit) {
   this.alarm = device['alarm']
   this.deviceTimeout = device['timeout'] || 120; // Mark as unavailable after 2 hours
   this.humidity = device['humidity'] || false; // Add humidity data to temerature sensor
+  this.storage = storage || 'fs';
+  this.refresh = refresh || 60;
 }
 
 Rtl433Accessory.prototype = {
@@ -377,9 +379,9 @@ Rtl433Accessory.prototype = {
     }
 
     if (this.alarm !== undefined) {
-      return [informationService, this.sensorService, this.alarmService, this.loggingService];
+      return [informationService, this.sensorService, this.alarmService, this.loggingService].filter(Boolean);
     } else {
-      return [informationService, this.sensorService, this.loggingService];
+      return [informationService, this.sensorService, this.loggingService].filter(Boolean);
     }
   }
 };
@@ -411,19 +413,11 @@ function getDevices(unit) {
   return devices;
 }
 
-function seconds(dateTime) {
-  // "2018-10-01 20:52:33"
-  var hms = dateTime.split(" ");
-  // debug("TIME", hms[1]);
-  var tt = hms[1].split(":");
-  var sec = tt[0] * 3600 + tt[1] * 60 + tt[2] * 1;
-  return (sec);
-}
-
 function duplicateMessage(last, current) {
   if (last) {
-    // debug("Last %s, Current %s", JSON.stringify(last), JSON.stringify(current));
-    if ((seconds(current.time) - seconds(last.time)) < 2) {
+    var lastMs = Date.parse(last.time.replace(' ', 'T'));
+    var currentMs = Date.parse(current.time.replace(' ', 'T'));
+    if (!isNaN(lastMs) && !isNaN(currentMs) && Math.abs(currentMs - lastMs) < 2000) {
       var tCurrent = Object.assign({}, current);
       var tLast = Object.assign({}, last);
       delete tCurrent.time;
